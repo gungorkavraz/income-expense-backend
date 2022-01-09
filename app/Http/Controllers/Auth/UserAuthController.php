@@ -7,6 +7,7 @@ use App\Http\Requests\User\LoginRequest;
 use App\Http\Requests\User\RegisterRequest;
 use Illuminate\Http\JsonResponse;
 use App\Models\User;
+use Illuminate\Support\Facades\Request;
 
 
 class UserAuthController extends Controller
@@ -23,8 +24,10 @@ class UserAuthController extends Controller
         $user = User::create($data);
 
         return response()->json([
-            'success' => 'true',
-            'data' => ['user' => $user, 'token' => $this->createToken($user)]
+            'success' => true,
+            'user' => $user,
+            'token' => $this->createToken($user),
+            'message' => 'Kullanıcı kaydı başarıyla gerçekleşti.'
         ]);
     }
 
@@ -38,16 +41,38 @@ class UserAuthController extends Controller
 
         if (!auth()->attempt($data)) {
             return response()->json([
-                'success' => 'false',
-                'data' => ['error_message' => 'Kullanıcı Adı veya Şifre yanlış.']
+                'success' => false,
+                'error_message' => 'Kullanıcı Adı veya Şifre yanlış.'
+            ]);
+        }
+        error_log(auth()->user());
+        return response()->json([
+            'success' => true,
+            'user' => auth()->user(),
+            'token' => $this->createToken(auth()->user())
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAuthenticatedUser(Request $request): JsonResponse
+    {
+        error_log(auth('api')->user());
+        if (auth('api')->user()) {
+            return response()->json([
+                'success' => true,
+                'user' => auth('api')->user()
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
             ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => ['token' => $this->createToken(auth()->user())]
-        ]);
     }
+
 
     /**
      * @param User $user

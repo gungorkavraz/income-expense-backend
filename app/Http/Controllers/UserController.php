@@ -10,19 +10,17 @@ use Illuminate\Support\Facades\Validator;
 class UserController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
+
         $users = User::all();
-        response([
-            'success' => 'true',
-            'data' => [
-                'users' => UserResource::collection($users)
-            ],
-        ], 200);
+        return response()->json([
+            'success' => true,
+            'users' => UserResource::collection($users),
+            'user' => auth()->user(),
+        ]);
     }
 
     /**

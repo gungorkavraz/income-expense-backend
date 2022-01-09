@@ -16,8 +16,10 @@ use App\Http\Controllers\Auth\UserAuthController;
 |
 */
 
-Route::post('/register', [UserAuthController::class, 'register']);
-Route::post('/login', [UserAuthController::class, 'login']);
+Route::post('/users/register', [UserAuthController::class, 'register']);
+Route::post('/users/login', [UserAuthController::class, 'login']);
+Route::post('/users/getAuthenticatedUser', [UserAuthController::class, 'getAuthenticatedUser']);
+
 
 Route::resource('users', UserController::class);
 
