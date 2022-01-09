@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -13,7 +16,13 @@ class UserController extends Controller
      */
     public function index()
     {
-        return response('User index deneme', 200);
+        $users = User::all();
+        response([
+            'success' => 'true',
+            'data' => [
+                'users' => UserResource::collection($users)
+            ],
+        ], 200);
     }
 
     /**
@@ -23,7 +32,6 @@ class UserController extends Controller
      */
     public function create()
     {
-        return response('User create deneme', 200);
     }
 
     /**
@@ -34,7 +42,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        return response('User store deneme', 200);
+        $data = $request->all();
+
+        $validator = Validator::validate([
+            'name' => 'required| max:50',
+
+        ]);
     }
 
     /**
