@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -22,5 +23,6 @@ Route::post('/users/getAuthenticatedUser', [UserAuthController::class, 'getAuthe
 
 
 Route::resource('users', UserController::class);
+Route::resource('categories', CategoryController::class);
 
 

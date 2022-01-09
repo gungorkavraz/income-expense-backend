@@ -40,12 +40,6 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->all();
-
-        $validator = Validator::validate([
-            'name' => 'required| max:50',
-
-        ]);
     }
 
     /**
