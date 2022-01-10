@@ -47,8 +47,9 @@ class CategoryController extends Controller
         $data = $request->all();
         $data['user_id'] = $authenticatedUser->id;
 
-        $category = Category::create($data);
 
+        $category = Category::create($data);
+        error_log('bitti');
         return response()->json([
             'success' => true,
             'category' => $category,
