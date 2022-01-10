@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Category\StoreCategoryRequest;
+use App\Http\Resources\CategoryResource;
+use App\Http\Resources\UserResource;
 use App\Models\Category;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -13,11 +16,15 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return JsonResponse
      */
     public function index()
     {
-        error_log('index');
+        $categories = Category::all();
+        return response()->json([
+            'success' => true,
+            'categories' => CategoryResource::collection($categories),
+        ]);
     }
 
     /**
