@@ -24,8 +24,8 @@ class StoreCategoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'categoryName' => 'required|max:255',
-            'isIncome' => 'required'
+            'category_name' => 'required|max:255',
+            'is_income' => 'required'
         ];
     }
 }

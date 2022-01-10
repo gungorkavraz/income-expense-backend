@@ -1,10 +1,9 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\Auth\UserAuthController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\TransactionController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,8 +20,7 @@ Route::post('/users/register', [UserAuthController::class, 'register']);
 Route::post('/users/login', [UserAuthController::class, 'login']);
 Route::post('/users/getAuthenticatedUser', [UserAuthController::class, 'getAuthenticatedUser']);
 
-
-Route::resource('users', UserController::class);
 Route::resource('categories', CategoryController::class);
+Route::resource('transactions', TransactionController::class);
 
 

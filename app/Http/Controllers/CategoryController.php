@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Resources\CategoryResource;
-use App\Http\Resources\UserResource;
 use App\Models\Category;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -46,8 +44,7 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request): JsonResponse
     {
         $authenticatedUser = auth('api')->user();
-        $data['name'] = $request->input('categoryName');
-        $data['is_income'] = $request->input('isIncome');
+        $data = $request->all();
         $data['user_id'] = $authenticatedUser->id;
 
         $category = Category::create($data);
