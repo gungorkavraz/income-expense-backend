@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Transaction\StoreTransactionRequest;
+use App\Http\Resources\TransactionResource;
 use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,11 +14,15 @@ class TransactionController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        error_log('denem');
+        $transactions = Transaction::all();
+        return response()->json([
+            'success' => true,
+            'transactions' => TransactionResource::collection($transactions),
+        ]);
     }
 
     /**
@@ -38,8 +43,6 @@ class TransactionController extends Controller
      */
     public function store(StoreTransactionRequest $request): JsonResponse
     {
-
-        error_log('dfasldkfasf');
         $authenticatedUser = auth('api')->user();
         $data = $request->all();
         $data['user_id'] = $authenticatedUser->id;
