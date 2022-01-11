@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
@@ -18,10 +19,59 @@ class TransactionController extends Controller
      */
     public function index(): JsonResponse
     {
-        $transactions = Transaction::all();
+        $transactions = DB::table('transactions')
+            ->where('user_id', '=', $this->getAuthenticatedUserId())
+            ->get();
+        //->get();
+
         return response()->json([
             'success' => true,
-            'transactions' => TransactionResource::collection($transactions),
+            'transactions' => $transactions,
+        ]);
+    }
+
+    public function sortByAmount(Request $request): JsonResponse
+    {
+        $sort = $request->input('sort');
+        error_log($sort);
+        $transactions = DB::table('transactions')
+            ->where('user_id', '=', $this->getAuthenticatedUserId())
+            ->orderByRaw('amount DESC')
+            ->get();
+        //->get();
+
+        return response()->json([
+            'success' => true,
+            'transactions' => $transactions,
+        ]);
+    }
+
+    public function sortByDate(Request $request): JsonResponse
+    {
+        $transactions = DB::table('transactions')
+            ->where('user_id', '=', $this->getAuthenticatedUserId())
+            ->orderByRaw('process_date DESC')
+            ->get();
+        //->get();
+
+        return response()->json([
+            'success' => true,
+            'transactions' => $transactions,
+        ]);
+    }
+
+    public function filterByValue(Request $request)
+    {
+        $filterBy = $request->input('filter_by');
+        $filter = $request->input('filter_value');
+        $transactions = DB::table('transactions')
+            ->where('user_id', '=', $this->getAuthenticatedUserId())
+            ->where($filterBy, 'like', '%' . $filter . '%')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'transactions' => $transactions,
         ]);
     }
 
@@ -43,9 +93,9 @@ class TransactionController extends Controller
      */
     public function store(StoreTransactionRequest $request): JsonResponse
     {
-        $authenticatedUser = auth('api')->user();
+
         $data = $request->all();
-        $data['user_id'] = $authenticatedUser->id;
+        $data['user_id'] = $this->getAuthenticatedUserId();
 
         $transaction = Transaction::create($data);
 
@@ -60,11 +110,20 @@ class TransactionController extends Controller
      * Display the specified resource.
      *
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show($id): JsonResponse
     {
-        //
+        $transaction = DB::table('transactions')
+            ->where('user_id', '=', $this->getAuthenticatedUserId())
+            ->where('id', '=', $id)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'transactionToUpdate' => $transaction,
+        ]);
+
     }
 
     /**
@@ -87,17 +146,30 @@ class TransactionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+        error_log('up2342date');
     }
 
     /**
      * Remove the specified resource from storage.
      *
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
-        //
+        $deleted = DB::table('transactions')
+            ->where('id', '=', $id)
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction deleted successfully.',
+        ]);
+    }
+
+    private function getAuthenticatedUserId()
+    {
+        return auth('api')->user()->id;
     }
 }

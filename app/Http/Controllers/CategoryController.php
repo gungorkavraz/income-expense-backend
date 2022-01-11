@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -18,10 +19,13 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::all();
+        $authenticatedUser = auth('api')->user();
+        $categories = DB::table('categories')
+            ->where('user_id', '=', $authenticatedUser->id)
+            ->get();
         return response()->json([
             'success' => true,
-            'categories' => CategoryResource::collection($categories),
+            'categories' => $categories,
         ]);
     }
 
