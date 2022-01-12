@@ -17,4 +17,12 @@ class Transaction extends Model
         'user_id',
         'amount',
     ];
+
+    public function category()
+    {
+        return $this->hasOne(Category::class);
+    }
+
 }
+
+

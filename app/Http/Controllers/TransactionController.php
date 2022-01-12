@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Resources\TransactionResource;
+use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,57 +18,52 @@ class TransactionController extends Controller
      *
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $transactions = DB::table('transactions')
-            ->where('user_id', '=', $this->getAuthenticatedUserId())
-            ->get();
-        //->get();
+        $transactions = Transaction::where('user_id', '=', $this->getAuthenticatedUserId())
+            ->when($request->has('process_date_desc'),
+                function ($query) {
+                    return $query->orderByRaw('process_date DESC');
+                }
+            )->when($request->has('process_date_inc'),
+                function ($query) {
+                    return $query->orderByRaw('process_date');
+                }
+            )->when($request->has('amount_desc'),
+                function ($query) {
+                    return $query->orderByRaw('amount DESC');
+                }
+            )->when($request->has('amount_inc'),
+                function ($query) {
+                    return $query->orderByRaw('amount');
+                }
+            )->when($request->hasAny(['amount', 'description', 'currency', 'process_date', 'category_id']),
+                function ($query) use ($request) {
+                    if ($request->has('amount'))
+                        return $query->where('amount', 'like', '%' . $request->input('filter_value') . '%');
+                    elseif ($request->has('description'))
+                        return $query->where('description', 'like', '%' . $request->input('filter_value') . '%');
+                    elseif ($request->has('currency'))
+                        return $query->where('currency', 'like', '%' . $request->input('filter_value') . '%');
+                    elseif ($request->has('process_date'))
+                        return $query->where('process_date', 'like', '%' . $request->input('filter_value') . '%');
+                    elseif ($request->has('category_id')) {
+                        return $query;
+                    }
 
-        return response()->json([
-            'success' => true,
-            'transactions' => $transactions,
-        ]);
-    }
+                    return $query;
+                }
+            )->when($request->has('first_date'),
+                function ($query) use ($request) {
+                    error_log('first_date');
+                    $from = date($request->input('first_date'));
+                    $to = date($request->input('last_date'));
 
-    public function sortByAmount(Request $request): JsonResponse
-    {
-        $sort = $request->input('sort');
-        error_log($sort);
-        $transactions = DB::table('transactions')
-            ->where('user_id', '=', $this->getAuthenticatedUserId())
-            ->orderByRaw('amount DESC')
-            ->get();
-        //->get();
 
-        return response()->json([
-            'success' => true,
-            'transactions' => $transactions,
-        ]);
-    }
 
-    public function sortByDate(Request $request): JsonResponse
-    {
-        $transactions = DB::table('transactions')
-            ->where('user_id', '=', $this->getAuthenticatedUserId())
-            ->orderByRaw('process_date DESC')
-            ->get();
-        //->get();
-
-        return response()->json([
-            'success' => true,
-            'transactions' => $transactions,
-        ]);
-    }
-
-    public function filterByValue(Request $request)
-    {
-        $filterBy = $request->input('filter_by');
-        $filter = $request->input('filter_value');
-        $transactions = DB::table('transactions')
-            ->where('user_id', '=', $this->getAuthenticatedUserId())
-            ->where($filterBy, 'like', '%' . $filter . '%')
-            ->get();
+                    return $query->whereBetween('process_date', [$from, $to])->orderByRaw('process_date DESC');
+                }
+            )->get();
 
         return response()->json([
             'success' => true,
@@ -114,8 +110,7 @@ class TransactionController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $transaction = DB::table('transactions')
-            ->where('user_id', '=', $this->getAuthenticatedUserId())
+        $transaction = Transaction::where('user_id', '=', $this->getAuthenticatedUserId())
             ->where('id', '=', $id)
             ->get();
 
@@ -146,7 +141,6 @@ class TransactionController extends Controller
      */
     public function update(Request $request, $id)
     {
-
         error_log('up2342date');
     }
 
@@ -158,9 +152,7 @@ class TransactionController extends Controller
      */
     public function destroy($id): JsonResponse
     {
-        $deleted = DB::table('transactions')
-            ->where('id', '=', $id)
-            ->delete();
+        $deleted = Transaction::where('id', '=', $id)->delete();
 
         return response()->json([
             'success' => true,

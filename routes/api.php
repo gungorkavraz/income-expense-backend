@@ -21,6 +21,7 @@ Route::post('/users/login', [UserAuthController::class, 'login']);
 Route::post('/users/getAuthenticatedUser', [UserAuthController::class, 'getAuthenticatedUser']);
 
 Route::resource('categories', CategoryController::class);
+
 Route::resource('transactions', TransactionController::class);
 
 
