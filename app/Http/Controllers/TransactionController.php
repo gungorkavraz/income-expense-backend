@@ -6,11 +6,17 @@ use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Resources\TransactionResource;
 use App\Models\Category;
 use App\Models\Transaction;
+use App\Utils\ExchangeRateApi;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+
 
 class TransactionController extends Controller
 {
@@ -21,6 +27,7 @@ class TransactionController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        /** @var Collection $transactions */
         $transactions = Transaction::where('user_id', '=', $this->getAuthenticatedUserId())
             ->when($request->has('process_date_desc'),
                 function ($query) {
@@ -49,7 +56,9 @@ class TransactionController extends Controller
                     elseif ($request->has('process_date'))
                         return $query->where('process_date', 'like', '%' . $request->input('filter_value') . '%');
                     elseif ($request->has('category_id')) {
-                        return $query;
+                        return $query->whereHas('category', function (Builder $query) use ($request) {
+                            $query->where('name', 'like', '%' . $request->input('filter_value') . '%');
+                        });
                     }
 
                     return $query;
@@ -66,6 +75,7 @@ class TransactionController extends Controller
         return response()->json([
             'success' => true,
             'transactions' => $transactions,
+            'net_amount' => $this->calculateAmount($transactions)
         ]);
     }
 
@@ -87,7 +97,6 @@ class TransactionController extends Controller
      */
     public function store(StoreTransactionRequest $request): JsonResponse
     {
-
         $data = $request->all();
         $data['user_id'] = $this->getAuthenticatedUserId();
 
@@ -127,7 +136,6 @@ class TransactionController extends Controller
      */
     public function edit($id)
     {
-
     }
 
     /**
@@ -177,5 +185,13 @@ class TransactionController extends Controller
     private function getAuthenticatedUserId()
     {
         return auth('api')->user()->id;
+    }
+
+    private function calculateAmount(Collection $transactions)
+    {
+        $exchangeRateApi = new ExchangeRateApi();
+        return $transactions->map(function ($transaction) use ($exchangeRateApi) {
+            return ($transaction->amount * $exchangeRateApi->getExchangeRate($transaction->currency)) * ($transaction->category->is_income ? 1 : -1);
+        })->sum();
     }
 }
