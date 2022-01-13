@@ -121,9 +121,15 @@ class TransactionController extends Controller
             ->where('id', '=', $id)
             ->get();
 
+        $message = 'There is no recorded transaction with this id';
+        if (count($transaction) > 0)
+            $message = 'Transaction transfarred this page successfully.';
+
+
         return response()->json([
             'success' => true,
             'transactionToUpdate' => $transaction,
+            'message' => $message
         ]);
 
     }
@@ -150,7 +156,7 @@ class TransactionController extends Controller
         error_log($id);
         $data = $request->all();
 
-        $transaction = Transaction::where('user_id', '=', $this->getAuthenticatedUserId())->find($id);
+        $transaction = Transaction::where('user_id', ' = ', $this->getAuthenticatedUserId())->find($id);
         $transaction->category_id = $data['category_id'];
         $transaction->currency = $data['currency'];
         $transaction->amount = $data['amount'];
@@ -162,7 +168,7 @@ class TransactionController extends Controller
         return response()->json([
             'success' => true,
             'data' => $transaction,
-            'message' => 'Transaction updated successfully.'
+            'message' => 'Transaction updated successfully . '
         ]);
     }
 
@@ -174,11 +180,11 @@ class TransactionController extends Controller
      */
     public function destroy($id): JsonResponse
     {
-        $deleted = Transaction::where('id', '=', $id)->delete();
+        $deleted = Transaction::where('id', ' = ', $id)->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Transaction deleted successfully.',
+            'message' => 'Transaction deleted successfully . ',
         ]);
     }
 
