@@ -3,26 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Transaction\StoreTransactionRequest;
-use App\Http\Resources\TransactionResource;
-use App\Models\Category;
 use App\Models\Transaction;
 use App\Utils\ExchangeRateApi;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-
 
 class TransactionController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -80,16 +73,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param StoreTransactionRequest $request
@@ -135,16 +118,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param int $id
-     * @return JsonResponse
-     */
-    public function edit($id)
-    {
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
@@ -153,17 +126,16 @@ class TransactionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        error_log($id);
         $data = $request->all();
 
-        $transaction = Transaction::where('user_id', ' = ', $this->getAuthenticatedUserId())->find($id);
+        $transaction = Transaction::where('user_id', '=', $this->getAuthenticatedUserId())->find($id);
+
         $transaction->category_id = $data['category_id'];
         $transaction->currency = $data['currency'];
         $transaction->amount = $data['amount'];
         $transaction->description = $data['description'];
         $transaction->process_date = $data['process_date'];
         $transaction->save();
-
 
         return response()->json([
             'success' => true,
@@ -180,19 +152,27 @@ class TransactionController extends Controller
      */
     public function destroy($id): JsonResponse
     {
-        $deleted = Transaction::where('id', ' = ', $id)->delete();
+        $deleted = Transaction::where('user_id', '=', $this->getAuthenticatedUserId())->where('id', '=', $id)->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'Transaction deleted successfully . ',
+            'transactionId' => $id
         ]);
     }
 
+    /**
+     * @return mixed
+     */
     private function getAuthenticatedUserId()
     {
         return auth('api')->user()->id;
     }
 
+    /**
+     * @param Collection $transactions
+     * @return mixed
+     */
     private function calculateAmount(Collection $transactions)
     {
         $exchangeRateApi = new ExchangeRateApi();
