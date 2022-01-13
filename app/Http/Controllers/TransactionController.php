@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class TransactionController extends Controller
 {
@@ -58,9 +59,6 @@ class TransactionController extends Controller
                     error_log('first_date');
                     $from = date($request->input('first_date'));
                     $to = date($request->input('last_date'));
-
-
-
                     return $query->whereBetween('process_date', [$from, $to])->orderByRaw('process_date DESC');
                 }
             )->get();
@@ -125,11 +123,11 @@ class TransactionController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
     public function edit($id)
     {
-        //
+
     }
 
     /**
@@ -137,11 +135,27 @@ class TransactionController extends Controller
      *
      * @param \Illuminate\Http\Request $request
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
     public function update(Request $request, $id)
     {
-        error_log('up2342date');
+        error_log($id);
+        $data = $request->all();
+
+        $transaction = Transaction::where('user_id', '=', $this->getAuthenticatedUserId())->find($id);
+        $transaction->category_id = $data['category_id'];
+        $transaction->currency = $data['currency'];
+        $transaction->amount = $data['amount'];
+        $transaction->description = $data['description'];
+        $transaction->process_date = $data['process_date'];
+        $transaction->save();
+
+
+        return response()->json([
+            'success' => true,
+            'data' => $transaction,
+            'message' => 'Transaction updated successfully.'
+        ]);
     }
 
     /**
