@@ -18,10 +18,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/users/register', [UserAuthController::class, 'register']);
 Route::post('/users/login', [UserAuthController::class, 'login']);
-Route::post('/users/getAuthenticatedUser', [UserAuthController::class, 'getAuthenticatedUser']);
 
-Route::resource('categories', CategoryController::class);
-
-Route::resource('transactions', TransactionController::class);
+Route::group(['middleware' => ['auth:api']], function () {
+    Route::post('/users/getAuthenticatedUser', [UserAuthController::class, 'getAuthenticatedUser']);
+    Route::resource('categories', CategoryController::class);
+    Route::resource('transactions', TransactionController::class);
+});
 
 
