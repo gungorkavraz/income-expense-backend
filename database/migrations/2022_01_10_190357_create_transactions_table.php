@@ -18,10 +18,11 @@ class CreateTransactionsTable extends Migration
             $table->integer('category_id');
             $table->date('process_date');
             $table->string('currency');
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->integer('amount');
             $table->integer('user_id');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
