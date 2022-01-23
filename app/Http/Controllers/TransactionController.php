@@ -41,16 +41,16 @@ class TransactionController extends Controller
             )->when($request->hasAny(['amount', 'description', 'currency', 'process_date', 'category_id']),
                 function ($query) use ($request) {
                     if ($request->has('amount'))
-                        return $query->where('amount', 'like', '%' . $request->input('filter_value') . '%');
+                        return $query->where('amount', 'like', '%' . $this->escapeLike($request->input('filter_value')) . '%');
                     elseif ($request->has('description'))
-                        return $query->where('description', 'like', '%' . $request->input('filter_value') . '%');
+                        return $query->where('description', 'like', '%' . $this->escapeLike($request->input('filter_value')) . '%');
                     elseif ($request->has('currency'))
-                        return $query->where('currency', 'like', '%' . $request->input('filter_value') . '%');
+                        return $query->where('currency', 'like', '%' . $this->escapeLike($request->input('filter_value')) . '%');
                     elseif ($request->has('process_date'))
-                        return $query->where('process_date', 'like', '%' . $request->input('filter_value') . '%');
+                        return $query->where('process_date', 'like', '%' . $this->escapeLike($request->input('filter_value')) . '%');
                     elseif ($request->has('category_id')) {
                         return $query->whereHas('category', function (Builder $query) use ($request) {
-                            $query->where('name', 'like', '%' . $request->input('filter_value') . '%');
+                            $query->where('name', 'like', '%' . $this->escapeLike($request->input('filter_value')) . '%');
                         });
                     }
 
@@ -106,7 +106,7 @@ class TransactionController extends Controller
 
         $message = 'There is no recorded transaction with this id';
         if (count($transaction) > 0)
-            $message = 'Transaction transfarred this page successfully.';
+            $message = 'Transaction transferred this page successfully.';
 
 
         return response()->json([
@@ -179,5 +179,19 @@ class TransactionController extends Controller
         return $transactions->map(function ($transaction) use ($exchangeRateApi) {
             return ($transaction->amount * $exchangeRateApi->getExchangeRate($transaction->currency)) * ($transaction->category->is_income ? 1 : -1);
         })->sum();
+    }
+
+    /**
+     * @param string $value
+     * @param string $char
+     * @return array|string|string[]
+     */
+    private function escapeLike(string $value, string $char = '\\')
+    {
+        return str_replace(
+            [$char, '%', '_'],
+            [$char . $char, $char . ' % ', $char . '_'],
+            $value
+        );
     }
 }
